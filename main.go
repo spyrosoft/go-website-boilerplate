@@ -44,7 +44,7 @@ func (sh *StaticHandler) ServeHttp(responseWriter http.ResponseWriter, request *
 	if serve404OnError(error, responseWriter) { return }
 	
 	if fileInfo.IsDir() {
-		fileHandle, error = sh.Open(staticFilePath + "index.html")
+		fileHandle, error = sh.Open(staticFilePath + "/index.html")
 		if serve404OnError(error, responseWriter) { return }
 		defer fileHandle.Close()
 		
