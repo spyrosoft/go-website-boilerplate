@@ -1,13 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"log"
-	"strings"
-	"path"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"path"
+	"strings"
+
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -15,43 +16,63 @@ type Credentials struct {
 	LiveOrDev string `json:"live-or-dev"`
 }
 
+var (
+	webRoot              = "awestruct/_site"
+	credentials          = Credentials{}
+	credentialsAreLoaded = false
+)
+
+func main() {
+	loadCredentials()
+	router := httprouter.New()
+	router.POST("/example-ajax-uri", exampleAJAXFunction)
+	router.NotFound = http.HandlerFunc(serveStaticFilesOr404)
+	log.Fatal(http.ListenAndServe(":8080", router))
+}
+
+//TODO: Rename this function
+func exampleAJAXFunction(responseWriter http.ResponseWriter, request *http.Request, requestParameters httprouter.Params) {
+}
+
 type StaticHandler struct {
 	http.Dir
 }
-
-var (
-	webRoot = "awestruct/_site"
-	credentials = Credentials{}
-	credentialsHaveBeenLoaded = false
-)
 
 func loadCredentials() {
 	rawCredentials, error := ioutil.ReadFile("private/credentials.json")
 	panicOnError(error)
 	error = json.Unmarshal(rawCredentials, &credentials)
 	panicOnError(error)
-	credentialsHaveBeenLoaded = true
+	credentialsAreLoaded = true
 }
 
 func (sh *StaticHandler) ServeHttp(responseWriter http.ResponseWriter, request *http.Request) {
 	staticFilePath := staticFilePath(request)
-	
+
 	fileHandle, error := sh.Open(staticFilePath)
-	if serve404OnError(error, responseWriter) { return }
+	if serve404OnError(error, responseWriter) {
+		return
+	}
 	defer fileHandle.Close()
-	
+
 	fileInfo, error := fileHandle.Stat()
-	if serve404OnError(error, responseWriter) { return }
-	
+	if serve404OnError(error, responseWriter) {
+		return
+	}
+
 	if fileInfo.IsDir() {
 		fileHandle, error = sh.Open(staticFilePath + "/index.html")
-		if serve404OnError(error, responseWriter) { return }
+		if serve404OnError(error, responseWriter) {
+			return
+		}
 		defer fileHandle.Close()
-		
+
 		fileInfo, error = fileHandle.Stat()
-		if serve404OnError(error, responseWriter) { return }
+		if serve404OnError(error, responseWriter) {
+			return
+		}
 	}
-	
+
 	http.ServeContent(responseWriter, request, fileInfo.Name(), fileInfo.ModTime(), fileHandle)
 }
 
@@ -80,15 +101,8 @@ func serve404OnError(error error, responseWriter http.ResponseWriter) bool {
 	return false
 }
 
-func panicOnError(error error) { if error != nil { log.Panic(error) } }
-
-//TODO: Place this function in its proper place
-func exampleAJAXFunction(responseWriter http.ResponseWriter, request *http.Request, requestParameters httprouter.Params) {}
-
-func main() {
-	loadCredentials()
-	router := httprouter.New()
-	router.POST("/example-ajax-uri", exampleAJAXFunction)
-	router.NotFound = http.HandlerFunc(serveStaticFilesOr404)
-	log.Fatal(http.ListenAndServe(":8080", router))
+func panicOnError(error error) {
+	if error != nil {
+		log.Panic(error)
+	}
 }
