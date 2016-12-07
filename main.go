@@ -13,7 +13,8 @@ import (
 )
 
 type SiteData struct {
-	LiveOrDev string `json:"live-or-dev"`
+	LiveOrDev             string            `json:"live-or-dev"`
+	URLPermanentRedirects map[string]string `json:"url-permanent-redirects"`
 }
 
 var (
@@ -47,6 +48,22 @@ func loadSiteData() {
 }
 
 func requestCatchAll(responseWriter http.ResponseWriter, request *http.Request) {
+	if permanentRedirectOldURLs(request.URL.Path, responseWriter, request) {
+		return
+	}
+	serveStaticFilesOr404(responseWriter, request)
+}
+
+func permanentRedirectOldURLs(currentURL string, responseWriter http.ResponseWriter, request *http.Request) bool {
+	for oldURL, newURL := range siteData.URLPermanentRedirects {
+		if currentURL == oldURL {
+			http.Redirect(responseWriter, request, newURL, http.StatusMovedPermanently)
+		}
+	}
+	return false
+}
+
+func serveStaticFilesOr404(responseWriter http.ResponseWriter, request *http.Request) {
 	staticHandler := StaticHandler{http.Dir(webRoot)}
 	staticHandler.ServeHttp(responseWriter, request)
 }
