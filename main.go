@@ -12,18 +12,18 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type Credentials struct {
+type SiteData struct {
 	LiveOrDev string `json:"live-or-dev"`
 }
 
 var (
-	webRoot              = "awestruct/_site"
-	credentials          = Credentials{}
-	credentialsAreLoaded = false
+	webRoot        = "awestruct/_site"
+	siteData       = SiteData{}
+	siteDataLoaded = false
 )
 
 func main() {
-	loadCredentials()
+	loadSiteData()
 	router := httprouter.New()
 	router.POST("/example-ajax-uri", exampleAJAXFunction)
 	router.NotFound = http.HandlerFunc(requestCatchAll)
@@ -38,12 +38,12 @@ type StaticHandler struct {
 	http.Dir
 }
 
-func loadCredentials() {
-	rawCredentials, error := ioutil.ReadFile("private/credentials.json")
+func loadSiteData() {
+	rawSiteData, error := ioutil.ReadFile("private/site-data.json")
 	panicOnError(error)
-	error = json.Unmarshal(rawCredentials, &credentials)
+	error = json.Unmarshal(rawSiteData, &siteData)
 	panicOnError(error)
-	credentialsAreLoaded = true
+	siteDataLoaded = true
 }
 
 func requestCatchAll(responseWriter http.ResponseWriter, request *http.Request) {
