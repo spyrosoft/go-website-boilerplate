@@ -26,7 +26,7 @@ func main() {
 	loadCredentials()
 	router := httprouter.New()
 	router.POST("/example-ajax-uri", exampleAJAXFunction)
-	router.NotFound = http.HandlerFunc(serveStaticFilesOr404)
+	router.NotFound = http.HandlerFunc(requestCatchAll)
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
@@ -46,6 +46,22 @@ func loadCredentials() {
 	credentialsAreLoaded = true
 }
 
+func requestCatchAll(responseWriter http.ResponseWriter, request *http.Request) {
+	staticHandler := StaticHandler{http.Dir(webRoot)}
+	staticHandler.ServeHttp(responseWriter, request)
+}
+
+func serve404OnError(error error, responseWriter http.ResponseWriter) bool {
+	if error != nil {
+		responseWriter.WriteHeader(http.StatusNotFound)
+		errorTemplate404Content, error := ioutil.ReadFile(webRoot + "/error-templates/404.html")
+		panicOnError(error)
+		fmt.Fprint(responseWriter, string(errorTemplate404Content))
+		return true
+	}
+	return false
+}
+
 func (sh *StaticHandler) ServeHttp(responseWriter http.ResponseWriter, request *http.Request) {
 	staticFilePath := staticFilePath(request)
 
@@ -61,6 +77,11 @@ func (sh *StaticHandler) ServeHttp(responseWriter http.ResponseWriter, request *
 	}
 
 	if fileInfo.IsDir() {
+		if request.URL.Path[len(request.URL.Path)-1] != '/' {
+			http.Redirect(responseWriter, request, request.URL.Path+"/", http.StatusFound)
+			return
+		}
+
 		fileHandle, error = sh.Open(staticFilePath + "/index.html")
 		if serve404OnError(error, responseWriter) {
 			return
@@ -83,22 +104,6 @@ func staticFilePath(request *http.Request) string {
 		request.URL.Path = staticFilePath
 	}
 	return path.Clean(staticFilePath)
-}
-
-func serveStaticFilesOr404(responseWriter http.ResponseWriter, request *http.Request) {
-	staticHandler := StaticHandler{http.Dir(webRoot)}
-	staticHandler.ServeHttp(responseWriter, request)
-}
-
-func serve404OnError(error error, responseWriter http.ResponseWriter) bool {
-	if error != nil {
-		responseWriter.WriteHeader(http.StatusNotFound)
-		errorTemplate404Content, error := ioutil.ReadFile(webRoot + "/error-templates/404.html")
-		panicOnError(error)
-		fmt.Fprint(responseWriter, string(errorTemplate404Content))
-		return true
-	}
-	return false
 }
 
 func panicOnError(error error) {
