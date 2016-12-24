@@ -1,4 +1,4 @@
-package boilerplate
+package main
 
 import (
 	"encoding/json"
