@@ -1,9 +1,17 @@
+# Boilerplate
+
+Abstracted website boilerplate to be included in all of my Golang websites.
+
+Example main.go:
+
+```go
 package main
 
 import (
 	"log"
 	"net/http"
 
+	"github.com/spyrosoft/go-website-boilerplate"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -29,3 +37,4 @@ func main() {
 //TODO: Rename this function
 func exampleAJAXFunction(responseWriter http.ResponseWriter, request *http.Request, requestParameters httprouter.Params) {
 }
+```
