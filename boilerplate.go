@@ -60,6 +60,15 @@ func serve404(responseWriter http.ResponseWriter) {
 	fmt.Fprint(responseWriter, string(template))
 }
 
+func serve500(responseWriter http.ResponseWriter) {
+	responseWriter.WriteHeader(http.StatusNotFound)
+	template, err := ioutil.ReadFile(webRoot + "/error-templates/500.html")
+	if err != nil {
+		template = []byte("Error 500 - Internal Server Error. Additionally a 500 page template could not be found.")
+	}
+	fmt.Fprint(responseWriter, string(template))
+}
+
 func (sh *StaticHandler) ServeHttp(responseWriter http.ResponseWriter, request *http.Request) {
 	staticFilePath := staticFilePath(request)
 
