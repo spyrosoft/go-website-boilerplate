@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"path"
 	"strings"
@@ -15,10 +14,10 @@ type StaticHandler struct {
 }
 
 func loadSiteData() {
-	rawSiteData, error := ioutil.ReadFile("private/site-data.json")
-	panicOnError(error)
-	error = json.Unmarshal(rawSiteData, &siteData)
-	panicOnError(error)
+	rawSiteData, err := ioutil.ReadFile("private/site-data.json")
+	panicOnErr(err)
+	err = json.Unmarshal(rawSiteData, &siteData)
+	panicOnErr(err)
 	siteDataLoaded = true
 }
 
@@ -64,14 +63,14 @@ func serve404(responseWriter http.ResponseWriter) {
 func (sh *StaticHandler) ServeHttp(responseWriter http.ResponseWriter, request *http.Request) {
 	staticFilePath := staticFilePath(request)
 
-	fileHandle, error := sh.Open(staticFilePath)
-	if serve404OnErr(error, responseWriter) {
+	fileHandle, err := sh.Open(staticFilePath)
+	if serve404OnErr(err, responseWriter) {
 		return
 	}
 	defer fileHandle.Close()
 
-	fileInfo, error := fileHandle.Stat()
-	if serve404OnErr(error, responseWriter) {
+	fileInfo, err := fileHandle.Stat()
+	if serve404OnErr(err, responseWriter) {
 		return
 	}
 
@@ -81,14 +80,14 @@ func (sh *StaticHandler) ServeHttp(responseWriter http.ResponseWriter, request *
 			return
 		}
 
-		fileHandle, error = sh.Open(staticFilePath + "/index.html")
-		if serve404OnErr(error, responseWriter) {
+		fileHandle, err = sh.Open(staticFilePath + "/index.html")
+		if serve404OnErr(err, responseWriter) {
 			return
 		}
 		defer fileHandle.Close()
 
-		fileInfo, error = fileHandle.Stat()
-		if serve404OnErr(error, responseWriter) {
+		fileInfo, err = fileHandle.Stat()
+		if serve404OnErr(err, responseWriter) {
 			return
 		}
 	}
@@ -105,8 +104,8 @@ func staticFilePath(request *http.Request) string {
 	return path.Clean(staticFilePath)
 }
 
-func panicOnError(error error) {
-	if error != nil {
-		log.Panic(error)
+func panicOnErr(err error) {
+	if err != nil {
+		panic(err)
 	}
 }
