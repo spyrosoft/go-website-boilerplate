@@ -61,7 +61,7 @@ func serve404(responseWriter http.ResponseWriter) {
 }
 
 func serve500(responseWriter http.ResponseWriter) {
-	responseWriter.WriteHeader(http.StatusNotFound)
+	responseWriter.WriteHeader(http.StatusInternalServerError)
 	template, err := ioutil.ReadFile(webRoot + "/error-templates/500.html")
 	if err != nil {
 		template = []byte("Error 500 - Internal Server Error. Additionally a 500 page template could not be found.")
