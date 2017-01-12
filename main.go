@@ -27,5 +27,5 @@ func main() {
 }
 
 //TODO: Rename this function
-func exampleAJAXFunction(responseWriter http.ResponseWriter, request *http.Request, requestParameters httprouter.Params) {
+func exampleAJAXFunction(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 }
