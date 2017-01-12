@@ -21,94 +21,94 @@ func loadSiteData() {
 	siteDataLoaded = true
 }
 
-func requestCatchAll(responseWriter http.ResponseWriter, request *http.Request) {
-	if permanentRedirectOldURLs(request.URL.Path, responseWriter, request) {
+func requestCatchAll(w http.ResponseWriter, r *http.Request) {
+	if permanentRedirectOldURLs(r.URL.Path, w, r) {
 		return
 	}
-	serveStaticFilesOr404(responseWriter, request)
+	serveStaticFilesOr404(w, r)
 }
 
-func permanentRedirectOldURLs(currentURL string, responseWriter http.ResponseWriter, request *http.Request) bool {
+func permanentRedirectOldURLs(currentURL string, w http.ResponseWriter, r *http.Request) bool {
 	for oldURL, newURL := range siteData.URLPermanentRedirects {
 		if currentURL == oldURL {
-			http.Redirect(responseWriter, request, newURL, http.StatusMovedPermanently)
+			http.Redirect(w, r, newURL, http.StatusMovedPermanently)
 			return true
 		}
 	}
 	return false
 }
 
-func serveStaticFilesOr404(responseWriter http.ResponseWriter, request *http.Request) {
+func serveStaticFilesOr404(w http.ResponseWriter, r *http.Request) {
 	staticHandler := StaticHandler{http.Dir(webRoot)}
-	staticHandler.ServeHttp(responseWriter, request)
+	staticHandler.ServeHttp(w, r)
 }
 
-func serve404OnErr(err error, responseWriter http.ResponseWriter) bool {
+func serve404OnErr(err error, w http.ResponseWriter) bool {
 	if err != nil {
-		serve404(responseWriter)
+		serve404(w)
 		return true
 	}
 	return false
 }
 
-func serve404(responseWriter http.ResponseWriter) {
-	responseWriter.WriteHeader(http.StatusNotFound)
+func serve404(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
 	template, err := ioutil.ReadFile(webRoot + "/error-templates/404.html")
 	if err != nil {
 		template = []byte("Error 404 - Page Not Found. Additionally a 404 page template could not be found.")
 	}
-	fmt.Fprint(responseWriter, string(template))
+	fmt.Fprint(w, string(template))
 }
 
-func serve500(responseWriter http.ResponseWriter) {
-	responseWriter.WriteHeader(http.StatusInternalServerError)
+func serve500(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusInternalServerError)
 	template, err := ioutil.ReadFile(webRoot + "/error-templates/500.html")
 	if err != nil {
 		template = []byte("Error 500 - Internal Server Error. Additionally a 500 page template could not be found.")
 	}
-	fmt.Fprint(responseWriter, string(template))
+	fmt.Fprint(w, string(template))
 }
 
-func (sh *StaticHandler) ServeHttp(responseWriter http.ResponseWriter, request *http.Request) {
-	staticFilePath := staticFilePath(request)
+func (sh *StaticHandler) ServeHttp(w http.ResponseWriter, r *http.Request) {
+	staticFilePath := staticFilePath(r)
 
 	fileHandle, err := sh.Open(staticFilePath)
-	if serve404OnErr(err, responseWriter) {
+	if serve404OnErr(err, w) {
 		return
 	}
 	defer fileHandle.Close()
 
 	fileInfo, err := fileHandle.Stat()
-	if serve404OnErr(err, responseWriter) {
+	if serve404OnErr(err, w) {
 		return
 	}
 
 	if fileInfo.IsDir() {
-		if request.URL.Path[len(request.URL.Path)-1] != '/' {
-			http.Redirect(responseWriter, request, request.URL.Path+"/", http.StatusFound)
+		if r.URL.Path[len(r.URL.Path)-1] != '/' {
+			http.Redirect(w, r, r.URL.Path+"/", http.StatusFound)
 			return
 		}
 
 		fileHandle, err = sh.Open(staticFilePath + "/index.html")
-		if serve404OnErr(err, responseWriter) {
+		if serve404OnErr(err, w) {
 			return
 		}
 		defer fileHandle.Close()
 
 		fileInfo, err = fileHandle.Stat()
-		if serve404OnErr(err, responseWriter) {
+		if serve404OnErr(err, w) {
 			return
 		}
 	}
 
-	http.ServeContent(responseWriter, request, fileInfo.Name(), fileInfo.ModTime(), fileHandle)
+	http.ServeContent(w, r, fileInfo.Name(), fileInfo.ModTime(), fileHandle)
 }
 
-func staticFilePath(request *http.Request) string {
-	staticFilePath := request.URL.Path
+func staticFilePath(r *http.Request) string {
+	staticFilePath := r.URL.Path
 	if !strings.HasPrefix(staticFilePath, "/") {
 		staticFilePath = "/" + staticFilePath
-		request.URL.Path = staticFilePath
+		r.URL.Path = staticFilePath
 	}
 	return path.Clean(staticFilePath)
 }
