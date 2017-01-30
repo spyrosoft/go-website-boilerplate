@@ -1,0 +1,6 @@
+{
+	"live-or-dev": "dev",
+	"url-permanent-redirects": {
+		"/example-url/" : "/"
+	}
+}
