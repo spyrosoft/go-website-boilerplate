@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -28,4 +29,14 @@ func main() {
 
 //TODO: Rename this function
 func exampleAJAXFunction(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+}
+
+func debug(things ...interface{}) {
+	if siteData.LiveOrDev == "dev" {
+		fmt.Println("====================")
+		for _, thing := range things {
+			fmt.Printf("%+v\n", thing)
+		}
+		fmt.Println("====================")
+	}
 }
