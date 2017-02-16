@@ -9,7 +9,6 @@ import (
 )
 
 type SiteData struct {
-	IsLoaded              bool
 	LiveOrDev             string            `json:"live-or-dev"`
 	URLPermanentRedirects map[string]string `json:"url-permanent-redirects"`
 }
