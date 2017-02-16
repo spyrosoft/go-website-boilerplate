@@ -18,7 +18,7 @@ func loadSiteData() {
 	panicOnErr(err)
 	err = json.Unmarshal(rawSiteData, &siteData)
 	panicOnErr(err)
-	siteDataLoaded = true
+	siteData.IsLoaded = true
 }
 
 func requestCatchAll(w http.ResponseWriter, r *http.Request) {

@@ -9,14 +9,14 @@ import (
 )
 
 type SiteData struct {
+	IsLoaded              bool
 	LiveOrDev             string            `json:"live-or-dev"`
 	URLPermanentRedirects map[string]string `json:"url-permanent-redirects"`
 }
 
 var (
-	webRoot        = "awestruct/_site"
-	siteData       = SiteData{}
-	siteDataLoaded = false
+	webRoot  = "awestruct/_site"
+	siteData = SiteData{}
 )
 
 func main() {

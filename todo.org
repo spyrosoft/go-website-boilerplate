@@ -1,0 +1,3 @@
+* Improve the no-reply convention in site-data.json
+* Instead of using using a global database connection use a wrapper which maintains the database connection state (in a closure?) and reconnects if the connection goes away
+* Include server side search and replace json variable which runs on page load
